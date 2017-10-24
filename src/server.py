@@ -1,23 +1,25 @@
+# -*-coding=utf-8-*-
 import socket
 import sys
 
 
 def server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    server.bind(('127.0.0.1', 5558))
+    server.bind(('127.0.0.1', 5566))
     server.listen(1)
     print('connected')
     while True:
         try:
             conn, addr = server.accept()
-            message = ''
+            message = b''
             msg_recv = True
             while msg_recv:
                 msg = conn.recv(8)
                 message += msg
-                if len(msg) < 8:
+                if '|' in msg:
                     msg_recv = False
             conn.sendall(message)
+            message = message[:(len(message) - 1)]
             print(message)
         except KeyboardInterrupt:
             print('Closing server')
