@@ -6,9 +6,10 @@ def server():
     server.bind(('127.0.0.1', 5555))
     server.listen(1)
     conn, addr = server.accept()
-    msg = ''
+    message = ''
     while True:
-        msg += conn.recv(8)
-        if len(conn.recv(8)) < 8:
+        msg = conn.recv(8)
+        message += msg
+        if len(msg) < 8:
             break
-    print(msg.encode('utf-8'))
+    print(message)
