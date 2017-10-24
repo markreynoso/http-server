@@ -8,7 +8,7 @@ def server():
     conn, addr = server.accept()
     msg = ''
     while True:
-        msg = msg + conn.recv(8)
+        msg += conn.recv(8)
         if len(conn.recv(8)) < 8:
             break
-    print(msg)
+    print(msg.encode('utf-8'))
