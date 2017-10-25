@@ -1,7 +1,6 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a client will run."""
 import socket
-import sys
 
 
 def client(message):
@@ -30,7 +29,7 @@ def client(message):
     return message
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     import sys
     message = sys.argv[1]
     print(client(message))

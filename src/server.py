@@ -1,7 +1,6 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a server will run."""
 import socket
-import sys
 
 
 def server():
@@ -34,5 +33,5 @@ def server():
         server.close()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     server()
