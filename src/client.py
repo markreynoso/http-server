@@ -1,6 +1,7 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a client will run."""
 import socket
+import sys
 
 
 def client(message):
@@ -24,12 +25,10 @@ def client(message):
             msg_recv = False
     message = message.decode('utf-8')
     message = message[:(len(message) - 1)]
-    print(message)
     client.close()
     return message
 
 
 if __name__ == '__main__':  # pragma: no cover
-    import sys
     message = sys.argv[1]
     print(client(message))

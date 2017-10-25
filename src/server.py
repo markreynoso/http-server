@@ -16,6 +16,7 @@ def server():
     try:
         while True:
             conn, addr = server.accept()
+
             message = b''
             msg_recv = True
             while msg_recv:
@@ -25,12 +26,23 @@ def server():
                     msg_recv = False
             message = message[:(len(message) - 1)]
             print(message.decode('utf-8'))
-            message = message + '|'
+            ok = response_ok()
+            message = ok + message + '|'
             conn.sendall(message)
             conn.close()
     except KeyboardInterrupt:
         print('Closing server.')
         server.close()
+
+
+def response_ok():
+    """Form a byte string for a 200 connection."""
+    return b'HTTP/1.1 200 OK \n <CRLF>\n'
+
+
+def response_error():
+    """Form a byte string for a 500 response."""
+    return b'HTTP/1.1 500 Internal server error \n <CRLF>\n'
 
 
 if __name__ == '__main__':  # pragma: no cover
