@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5570))
+    server.bind(('127.0.0.1', 5591))
     server.listen(1)
     print('connected')
     try:
@@ -25,9 +25,16 @@ def server():
                     msg_recv = False
             message = message[:(len(message) - 1)]
             print(message.decode('utf-8'))
-            ok = response_ok()
-            message = ok + message + '|'
-            conn.sendall(message)
+            bar = u'|'
+            try:
+                uri = parse_request(message)
+                message = uri + bar
+                conn.sendall(message)
+            except ValueError:
+                error_return = response_error(400)
+                error_return = error_return.encode('utf-8')
+                error_return += bar
+                conn.sendall(error_return)
             conn.close()
     except KeyboardInterrupt:
         print('Closing server.')
@@ -45,19 +52,50 @@ def response_error(type):
 
 
 def parse_request(message):
-    """Parse the incoming request from client side"""
+    """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('<CRLF>')
-    header_lines = message_[0].split('\n')
-    request_line = header_lines.pop(0).split()
+    header_string = message_list[0]
+    print(header_string)
+    header_lines = header_string.split('\\n')
+    print(header_lines)
+    string_header_lines = header_lines.pop(0)
+    header_lines.pop()
+    print(string_header_lines)
+    shl = " ".join(header_lines)
+    print(header_lines)
+    request_line = string_header_lines.split()
+    uri = request_line[1]
+    print(uri)
+    method = request_line[0]
+    protocol = request_line[2]
+    valid_head = shl.split()
+    correct = 0
+    verified = False
+    for i in range(len(valid_head)):
+        if(i % 2 == 0):
+            if ':' in valid_head[i]:
+                correct += 1
+        else:
+            if len(valid_head[i]) > 0:
+                correct += 1
+    if (len(valid_head) == correct):
+        verified = True
+    if method is 'GET' and protocol is 'HTTP/1.1' and len(header_lines) > 0 and verified:
+        ok = response_ok()
+        print(type(ok))
+        print(type(uri))
+        uri = ok + b'\n' + uri
+        return uri
+    elif method is not 'GET' and protocol is 'HTTP/1.1':
+        error_val = response_error(405)
+        raise ValueError(error_val)
+    elif method is not 'GET' and protocol is not 'HTTP/1.1':
+        error_val = response_error(400)
+        raise ValueError(error_val)
+    elif verified is False or len(header_lines) == 0:
+        error_val = response_error(406)
+        raise ValueError(error_val)
 
-    if request_line[0] is 'GET' and request_line[2] is 'HTTP/1.1'
-        response_ok()
-    else:
-        response_error(405)
-    if check for header
-
-    if none of the above, return URI of request.
-        return request_list[1]
 
 if __name__ == '__main__':  # pragma: no cover
     server()
