@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5617))
+    server.bind(('127.0.0.1', 5622))
     server.listen(1)
     print('connected')
     try:
@@ -25,10 +25,14 @@ def server():
                     msg_recv = False
             message = message[:(len(message) - 1)]
             # print(message.decode('utf-8'))
-            bar = '|'
-            response = parse_request(message)
-            message = response + bar
-            conn.sendall(message.encode('utf-8'))
+            try:
+                response = parse_request(message)
+                message = response + '|'
+                conn.sendall(message.encode('utf-8'))
+            except ValueError as back:
+                error_msg = response_error(back)
+                message = error_msg + '|'
+                conn.sendall(message.encode('utf-8'))
             conn.close()
     except KeyboardInterrupt:
         print('Closing server.')
@@ -37,17 +41,17 @@ def server():
 
 def response_ok():
     """Form a string for a 200 connection."""
-    return 'HTTP/1.1 200 OK\n<CRLF>\n'
+    return 'HTTP/1.1 200 OK\n\r\n\n'
 
 
 def response_error(type):
     """Form a string for a 500 response."""
-    return 'HTTP/1.1 {} Internal server error\n<CRLF>\n'.format(type)
+    return 'HTTP/1.1 {}\nInternal server error\n\r\n\n'.format(type)
 
 
 def parse_request(message):
     """Parse the incoming request from client side."""
-    message_list = message.decode('utf-8').split('<CRLF>')
+    message_list = message.decode('utf-8').split('\r\n')
     header_string = message_list[0]
     header_lines = header_string.split('\n')
     string_header_lines = header_lines.pop(0)
@@ -75,14 +79,17 @@ def parse_request(message):
         uri = ok + '\n' + uri
         return uri
     elif method != 'GET' and protocol == 'HTTP/1.1':
-        error_val = response_error('405')
-        return error_val
+        raise ValueError('405 Improper request method.')
+        # error_val = response_error('405')
+        # return error_val
     elif method == 'GET' and protocol != 'HTTP/1.1':
-        error_val = response_error('400')
-        return error_val
+        raise ValueError('400 Improper protocol.')
+        # error_val = response_error('400')
+        # return error_val
     elif verified is False or len(header_lines) == 0:
-        error_val = response_error('406')
-        return error_val
+        raise ValueError('406 Improper header.')
+        # error_val = response_error('406')
+        # return error_val
 
 
 if __name__ == '__main__':  # pragma: no cover
