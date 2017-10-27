@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5602))
+    server.bind(('127.0.0.1', 5617))
     server.listen(1)
     print('connected')
     try:
@@ -25,10 +25,10 @@ def server():
                     msg_recv = False
             message = message[:(len(message) - 1)]
             # print(message.decode('utf-8'))
-            bar = b'|'
+            bar = '|'
             response = parse_request(message)
             message = response + bar
-            conn.sendall(message)
+            conn.sendall(message.encode('utf-8'))
             conn.close()
     except KeyboardInterrupt:
         print('Closing server.')
@@ -36,39 +36,28 @@ def server():
 
 
 def response_ok():
-    """Form a byte string for a 200 connection."""
-    return b'HTTP/1.1 200 OK \n <CRLF>\n'
+    """Form a string for a 200 connection."""
+    return 'HTTP/1.1 200 OK\n<CRLF>\n'
 
 
 def response_error(type):
-    """Form a byte string for a 500 response."""
-    return 'HTTP/1.1 tpye Internal server error \n <CRLF>\n'
+    """Form a string for a 500 response."""
+    return 'HTTP/1.1 {} Internal server error\n<CRLF>\n'.format(type)
 
 
 def parse_request(message):
     """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('<CRLF>')
-    print(message_list)
     header_string = message_list[0]
-    print(header_string)
-    header_lines = header_string.split('\\n')
-    print(header_lines)
+    header_lines = header_string.split('\n')
     string_header_lines = header_lines.pop(0)
-    print(string_header_lines)
     header_lines.pop()
-    print(header_lines)
     shl = " ".join(header_lines)
-    print(shl)
     request_line = string_header_lines.split()
-    print(request_line)
-    uri = request_line[1].encode('utf-8')
-    print(uri)
+    uri = request_line[1]
     method = request_line[0]
-    print(method)
     protocol = request_line[2]
-    print(protocol)
     valid_head = shl.split()
-    print(valid_head)
     correct = 0
     verified = False
     for i in range(len(valid_head)):
@@ -78,25 +67,21 @@ def parse_request(message):
         else:
             if len(valid_head[i]) > 0:
                 correct += 1
-    if (len(valid_head) == correct and len(valid_head) % 2 == 0):
+    if len(valid_head) == correct and len(valid_head) % 2 == 0:
         verified = True
     if method == 'GET' and protocol == 'HTTP/1.1' and len(header_lines) > 0\
             and verified:
         ok = response_ok()
-        print(type(ok))
-        print(type(uri))
-        uri = ok + b'\n' + uri
-        print(uri)
-        print(type(uri))
+        uri = ok + '\n' + uri
         return uri
-    elif method is not 'GET' and protocol is 'HTTP/1.1':
-        error_val = response_error(405)
+    elif method != 'GET' and protocol == 'HTTP/1.1':
+        error_val = response_error('405')
         return error_val
-    elif method is not 'GET' and protocol is not 'HTTP/1.1':
-        error_val = response_error(400)
+    elif method == 'GET' and protocol != 'HTTP/1.1':
+        error_val = response_error('400')
         return error_val
     elif verified is False or len(header_lines) == 0:
-        error_val = response_error(406)
+        error_val = response_error('406')
         return error_val
 
 
