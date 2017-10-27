@@ -1,6 +1,8 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a server will run."""
 import socket
+import io
+import os
 
 
 def server():
@@ -27,8 +29,14 @@ def server():
             # print(message.decode('utf-8'))
             try:
                 response = parse_request(message)
-                message = response + '|'
-                conn.sendall(message.encode('utf-8'))
+                try:
+                    content = resolve_uri(response)
+                    message = response + content + '|'
+                    conn.sendall(message.encode('utf-8'))
+                except ValueError as back:
+                    error_msg = response_error(back)
+                    message = error_msg + '|'
+                    conn.sendall(message.encode('utf-8'))
             except ValueError as back:
                 error_msg = response_error(back)
                 message = error_msg + '|'
@@ -90,6 +98,19 @@ def parse_request(message):
         raise ValueError('406 Improper header.')
         # error_val = response_error('406')
         # return error_val
+
+
+def resolve_uri(uri):
+    """."""
+    if '/content' in uri:
+        if(uri == '/content'):
+            paths = os.listdir('/content')
+            return paths
+        elif('/content/' in uri):
+            file = io.open(uri, encoding='utf-8')
+            return file
+    else:
+        raise ValueError('400 Need authorization.')
 
 
 if __name__ == '__main__':  # pragma: no cover
