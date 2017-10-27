@@ -67,7 +67,8 @@ def test_put_request_error():
         '\nGivemefile: Name\n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 405 Improper request method.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 405 Improper request method.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_delete_request_error():
@@ -77,7 +78,8 @@ def test_delete_request_error():
         '\nGivemefile: Name\n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 405 Improper request method.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 405 Improper request method.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_post_request_error():
@@ -87,7 +89,8 @@ def test_post_request_error():
         '\nGivemefile: Name\n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 405 Improper request method.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 405 Improper request method.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_valid_protocol():
@@ -107,7 +110,8 @@ def test_invalid_protocol():
         '\nGivemefile: Name\n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 400 Improper protocol.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 400 Improper protocol.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_header_not_exist():
@@ -117,7 +121,8 @@ def test_header_not_exist():
         '\n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 406 Improper header.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 406 Improper header.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_header_exist():
@@ -138,7 +143,8 @@ def test_header_improper_format():
         '\nMore: \n<CRLF>'
         '\nSome test string to see if this works.')
     )
-    assert response == 'HTTP/1.1 406 Improper header.\nInternal server error\n<CRLF>\n'
+    assert response == ('HTTP/1.1 406 Improper header.'
+                        '\nInternal server error\n<CRLF>\n')
 
 
 def test_header_proper_formal():
