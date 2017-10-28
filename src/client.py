@@ -13,11 +13,8 @@ def client(message):
     stream = [i for i in info if i[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream[:3])
     client.connect((stream[-1]))
-    # if sys.version_info.major == 3:
     message = codecs.escape_decode(message)[0]
     client.sendall(message)
-    # else:
-    #     client.sendall(message)
     message = b''
     msg_recv = True
     while msg_recv:

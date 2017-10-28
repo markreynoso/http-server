@@ -80,8 +80,6 @@ def parse_request(message):
             and verified and host_line_list[0] == 'Host:':
         ok = response_ok()
         uri = ok + '\n' + uri
-        print(the_header)
-        print(host_line_list[0])
         return uri
     elif method != 'GET' and protocol == 'HTTP/1.1':
         raise ValueError('405 Improper request method.')
@@ -90,7 +88,6 @@ def parse_request(message):
     elif host_line_list[0] != 'Host:':
         raise ValueError('400 You must include Host:.')
     elif verified is False or len(the_header) == 0:
-        print(the_header)
         raise ValueError('406 Improper header.')
 
 
