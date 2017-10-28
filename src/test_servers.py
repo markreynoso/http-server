@@ -53,7 +53,8 @@ from client import client
 def test_get_reponse_ok():
     """Test a proper GET request returns 200 OK."""
     response = client((
-        'GET fake.html HTTP/1.1'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -63,7 +64,8 @@ def test_get_reponse_ok():
 def test_put_request_error():
     """Test a PUT request is 405 error."""
     response = client((
-        'PUT fake.html HTTP/1.1'
+        'PUT fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -74,7 +76,8 @@ def test_put_request_error():
 def test_delete_request_error():
     """Test a DELETE request is 405 error."""
     response = client((
-        'DELE fake.html HTTP/1.1'
+        'DELE fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -85,7 +88,8 @@ def test_delete_request_error():
 def test_post_request_error():
     """Test a POST request is 405 error."""
     response = client((
-        'POST fake.html HTTP/1.1'
+        'POST fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -96,7 +100,8 @@ def test_post_request_error():
 def test_valid_protocol():
     """Test valid HTTP/1.1 protocol returns 200 OK."""
     response = client((
-        'GET fake.html HTTP/1.1'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -106,7 +111,8 @@ def test_valid_protocol():
 def test_invalid_protocol():
     """Test invalid HTTP protocol returns 400 error."""
     response = client((
-        'GET fake.html HTTP/22.1'
+        'GET fake.html HTTP/22.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -117,7 +123,8 @@ def test_invalid_protocol():
 def test_header_not_exist():
     """Test if header is not in request returns 406 error."""
     response = client((
-        'GET fake.html HTTP/1.1'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -128,7 +135,8 @@ def test_header_not_exist():
 def test_header_exist():
     """Test if header is in request returns 200 OK."""
     response = client((
-        'GET fake.html HTTP/1.1'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
         '\nGivemefile: Name\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -138,9 +146,10 @@ def test_header_exist():
 def test_header_improper_format():
     """Test if improper header returns 406 error."""
     response = client((
-        'GET fake.html HTTP/1.1'
-        '\nHeader: Something'
-        '\nMore: \n\r\n'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
+        '\nHeader: Something '
+        '\nMore:\n\r\n'
         '\nSome test string to see if this works.')
     )
     assert response == ('HTTP/1.1 406 Improper header.'
@@ -150,8 +159,9 @@ def test_header_improper_format():
 def test_header_proper_formal():
     """Test if proper header returns 200 OK."""
     response = client((
-        'GET fake.html HTTP/1.1'
-        '\nGivemefile: Name'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
+        '\nGivemefile: Name '
         '\nHeader: Blahhhh!\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -162,8 +172,9 @@ def test_exception_on_protocol_error():
     """Test if error raises exception."""
     pytest.raises(ValueError)
     client((
-        'GET fake.html HTTP/1.2'
-        '\nGivemefile: Name'
+        'GET fake.html HTTP/1.2\r\n'
+        '\nHost: www.something.com:80\r\n'
+        '\nGivemefile: Name '
         '\nHeader: Blahhhh!\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -173,8 +184,9 @@ def test_exception_on_method_error():
     """Test if error raises exception."""
     pytest.raises(ValueError)
     client((
-        'PUT fake.html HTTP/1.1'
-        '\nGivemefile: Name'
+        'PUT fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
+        '\nGivemefile: Name '
         '\nHeader: Blahhhh!\n\r\n'
         '\nSome test string to see if this works.')
     )
@@ -184,8 +196,21 @@ def test_exception_on_header_error():
     """Test if error raises exception."""
     pytest.raises(ValueError)
     client((
-        'GET fake.html HTTP/1.1'
-        '\nGivemefile: Name'
+        'GET fake.html HTTP/1.1\r\n'
+        '\nHost: www.something.com:80\r\n'
+        '\nGivemefile: Name '
         '\nHeader: Blahhhh!\n\r\n'
         '\nSome test string to see if this works.')
     )
+
+
+def test_request_include_host():
+    """Test if improper header returns 406 error."""
+    response = client((
+        'GET fake.html HTTP/1.1\r\n\n'
+        '\nHeader: Something '
+        '\nMore:\n\r\n'
+        '\nSome test string to see if this works.')
+    )
+    assert response == ('HTTP/1.1 400 You must include Host:.'
+                        '\nInternal server error\n\r\n\n')

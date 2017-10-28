@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5625))
+    server.bind(('127.0.0.1', 5637))
     server.listen(1)
     print('connected')
     try:
@@ -24,14 +24,15 @@ def server():
                 if b'|' in msg:
                     msg_recv = False
             message = message[:(len(message) - 1)]
-            # print(message.decode('utf-8'))
             try:
                 response = parse_request(message)
                 message = response + '|'
+                print(message)
                 conn.sendall(message.encode('utf-8'))
             except ValueError as back:
                 error_msg = response_error(back)
                 message = error_msg + '|'
+                print(message)
                 conn.sendall(message.encode('utf-8'))
             conn.close()
     except KeyboardInterrupt:
@@ -52,45 +53,55 @@ def response_error(type):
 def parse_request(message):
     """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('\r\n')
+    # print(message_list)
     header_string = message_list[0]
-    header_lines = header_string.split('\n')
-    string_header_lines = header_lines.pop(0)
-    header_lines.pop()
+    # print(header_string)
+    host_string = message_list[1].replace('\n', '')
+    # print(host_string)
+    header_lines = header_string.split(' ')
+    header = message_list[2].replace('\n', '')
+    the_header = header.split(' ')
+    # string_header_lines = header_lines.pop(0)
+    host_line_list = host_string.split(' ')
+    # print(host_line_list)
+    # header_lines.pop()
     shl = " ".join(header_lines)
-    request_line = string_header_lines.split()
-    uri = request_line[1]
-    method = request_line[0]
-    protocol = request_line[2]
-    valid_head = shl.split()
+    # print(shl)
+    valid_head = shl.split(' ')
+    uri = valid_head[1]
+    # print(uri)
+    method = valid_head[0]
+    # print(method)
+    protocol = valid_head[2]
+    # print(protocol)
+    # valid_head = shl.split()
     correct = 0
     verified = False
-    for i in range(len(valid_head)):
+    for i in range(len(the_header)):
         if(i % 2 == 0):
-            if ':' in valid_head[i]:
+            if ':' in the_header[i]:
                 correct += 1
         else:
-            if len(valid_head[i]) > 0:
+            if len(the_header[i]) > 0:
                 correct += 1
-    if len(valid_head) == correct and len(valid_head) % 2 == 0:
+    if len(the_header) == correct and len(the_header) % 2 == 0:
         verified = True
-    if method == 'GET' and protocol == 'HTTP/1.1' and len(header_lines) > 0\
-            and verified:
+    if method == 'GET' and protocol == 'HTTP/1.1' and len(the_header) > 0\
+            and verified and host_line_list[0] == 'Host:':
         ok = response_ok()
         uri = ok + '\n' + uri
+        print(the_header)
+        print(host_line_list[0])
         return uri
     elif method != 'GET' and protocol == 'HTTP/1.1':
         raise ValueError('405 Improper request method.')
-        # error_val = response_error('405')
-        # return error_val
     elif method == 'GET' and protocol != 'HTTP/1.1':
         raise ValueError('400 Improper protocol.')
-        # error_val = response_error('400')
-        # return error_val
-    elif verified is False or len(header_lines) == 0:
-        print(header_lines)
+    elif host_line_list[0] != 'Host:':
+        raise ValueError('400 You must include Host:.')
+    elif verified is False or len(the_header) == 0:
+        print(the_header)
         raise ValueError('406 Improper header.')
-        # error_val = response_error('406')
-        # return error_val
 
 
 if __name__ == '__main__':  # pragma: no cover
