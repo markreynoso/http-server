@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5622))
+    server.bind(('127.0.0.1', 5625))
     server.listen(1)
     print('connected')
     try:
@@ -41,7 +41,7 @@ def server():
 
 def response_ok():
     """Form a string for a 200 connection."""
-    return 'HTTP/1.1 200 OK\n\r\n\n'
+    return 'HTTP/1.1 200 OK\n\r\n'
 
 
 def response_error(type):
@@ -87,6 +87,7 @@ def parse_request(message):
         # error_val = response_error('400')
         # return error_val
     elif verified is False or len(header_lines) == 0:
+        print(header_lines)
         raise ValueError('406 Improper header.')
         # error_val = response_error('406')
         # return error_val
