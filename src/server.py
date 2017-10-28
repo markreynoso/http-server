@@ -1,7 +1,6 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a server will run."""
 import socket
-import io
 import os
 
 
@@ -12,7 +11,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5637))
+    server.bind(('127.0.0.1', 5651))
     server.listen(1)
     print('connected')
     try:
@@ -30,7 +29,7 @@ def server():
                 response = parse_request(message)
                 try:
                     content = resolve_uri(response)
-                    message = response + content + '|'
+                    message = content + '|'
                     conn.sendall(message.encode('utf-8'))
                 except ValueError as back:
                     error_msg = response_error(back)
@@ -60,14 +59,11 @@ def response_error(type):
 def parse_request(message):
     """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('\r\n')
-    header_string = message_list[0]
-    host_string = message_list[1].replace('\n', '')
-    header_lines = header_string.split(' ')
-    header = message_list[2].replace('\n', '')
-    the_header = header.split(' ')
+    header_string = message_list[0].split('\n')
+    host_string = header_string[1]
+    the_header = header_string[2].split(' ')
     host_line_list = host_string.split(' ')
-    shl = " ".join(header_lines)
-    valid_head = shl.split(' ')
+    valid_head = header_string[0].split(' ')
     uri = valid_head[1]
     method = valid_head[0]
     protocol = valid_head[2]
@@ -98,13 +94,14 @@ def parse_request(message):
 
 
 def resolve_uri(uri):
-    """."""
-    if '/content' in uri:
-        if(uri == '/content'):
+    """Handle file requests."""
+    if '..' not in uri:
+        if uri == '/webroot':
+            print(uri)
             paths = os.listdir('/content')
             return paths
-        elif('/content/' in uri):
-            file = io.open(uri, encoding='utf-8')
+        elif '/content/' in uri:
+            file = os.open(uri, encoding='utf-8')
             return file
     else:
         raise ValueError('400 Need authorization.')
