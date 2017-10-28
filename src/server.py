@@ -28,14 +28,8 @@ def server():
             message = message[:(len(message) - 1)]
             try:
                 response = parse_request(message)
-                try:
-                    content = resolve_uri(response)
-                    message = response + content + '|'
-                    conn.sendall(message.encode('utf-8'))
-                except ValueError as back:
-                    error_msg = response_error(back)
-                    message = error_msg + '|'
-                    conn.sendall(message.encode('utf-8'))
+                message = response + '|'
+                conn.sendall(message.encode('utf-8'))
             except ValueError as back:
                 error_msg = response_error(back)
                 message = error_msg + '|'
@@ -60,28 +54,17 @@ def response_error(type):
 def parse_request(message):
     """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('\r\n')
-    # print(message_list)
     header_string = message_list[0]
-    # print(header_string)
     host_string = message_list[1].replace('\n', '')
-    # print(host_string)
     header_lines = header_string.split(' ')
     header = message_list[2].replace('\n', '')
     the_header = header.split(' ')
-    # string_header_lines = header_lines.pop(0)
     host_line_list = host_string.split(' ')
-    # print(host_line_list)
-    # header_lines.pop()
     shl = " ".join(header_lines)
-    # print(shl)
     valid_head = shl.split(' ')
     uri = valid_head[1]
-    # print(uri)
     method = valid_head[0]
-    # print(method)
     protocol = valid_head[2]
-    # print(protocol)
-    # valid_head = shl.split()
     correct = 0
     verified = False
     for i in range(len(the_header)):
@@ -109,19 +92,6 @@ def parse_request(message):
     elif verified is False or len(the_header) == 0:
         print(the_header)
         raise ValueError('406 Improper header.')
-
-
-def resolve_uri(uri):
-    """."""
-    if '/content' in uri:
-        if(uri == '/content'):
-            paths = os.listdir('/content')
-            return paths
-        elif('/content/' in uri):
-            file = io.open(uri, encoding='utf-8')
-            return file
-    else:
-        raise ValueError('400 Need authorization.')
 
 
 if __name__ == '__main__':  # pragma: no cover
