@@ -1,8 +1,9 @@
 # -*-coding=utf-8-*-
 """Create a socket on which a server will run."""
 import socket
+import sys
 import os
-
+from mimetypes import guess_type
 
 def server():
     """Create an open server to listen and echo message."""
@@ -11,7 +12,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5651))
+    server.bind(('127.0.0.1', 5671))
     server.listen(1)
     print('connected')
     try:
@@ -28,8 +29,8 @@ def server():
             try:
                 response = parse_request(message)
                 try:
-                    content = resolve_uri(response)
-                    message = content + '|'
+                    body, size, f_type = resolve_uri(response)
+                    message = body + str(size) + f_type + '|'
                     conn.sendall(message.encode('utf-8'))
                 except ValueError as back:
                     error_msg = response_error(back)
@@ -44,6 +45,7 @@ def server():
     except KeyboardInterrupt:
         print('Closing server.')
         server.close()
+        sys.exit(0)
 
 
 def response_ok():
@@ -80,8 +82,8 @@ def parse_request(message):
         verified = True
     if method == 'GET' and protocol == 'HTTP/1.1' and len(the_header) > 0\
             and verified and host_line_list[0] == 'Host:':
-        ok = response_ok()
-        uri = ok + '\n' + uri
+        # ok = response_ok()
+        # uri = ok + '\n' + uri
         return uri
     elif method != 'GET' and protocol == 'HTTP/1.1':
         raise ValueError('405 Improper request method.')
@@ -95,16 +97,22 @@ def parse_request(message):
 
 def resolve_uri(uri):
     """Handle file requests."""
-    if '..' not in uri:
-        if uri == '/webroot':
-            print(uri)
-            paths = os.listdir('/content')
-            return paths
-        elif '/content/' in uri:
-            file = os.open(uri, encoding='utf-8')
-            return file
+    path = '/'.join([os.path.dirname(os.path.abspath(__file__)),
+                     'webroot', uri]).replace('//', '/')
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            with open(path, 'rb') as text:
+                body = text.read()
+            size = len(body)
+            f_type = guess_type(path)
+            return body, size, f_type[0]
+        elif os.path.isdir(path):
+            dir_list = ''
+            for item in os.listdir(path):
+                dir_list += item + '\n'
+            return '<html><body>{}<body/><html/>'.format(dir_list)
     else:
-        raise ValueError('400 Need authorization.')
+        raise ValueError('404 Need authorization.')
 
 
 if __name__ == '__main__':  # pragma: no cover
