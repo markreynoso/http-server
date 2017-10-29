@@ -5,6 +5,7 @@ import sys
 import os
 from mimetypes import guess_type
 
+
 def server():
     """Create an open server to listen and echo message."""
     server = socket.socket(
