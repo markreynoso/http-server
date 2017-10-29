@@ -12,7 +12,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5671))
+    server.bind(('127.0.0.1', 5682))
     server.listen(1)
     print('connected')
     try:
@@ -29,8 +29,9 @@ def server():
             try:
                 response = parse_request(message)
                 try:
-                    body, size, f_type = resolve_uri(response)
-                    message = body + str(size) + f_type + '|'
+                    return_search = resolve_uri(response)
+                    ok = response_ok(return_search)
+                    message = ok + '|'
                     conn.sendall(message.encode('utf-8'))
                 except ValueError as back:
                     error_msg = response_error(back)
@@ -39,7 +40,6 @@ def server():
             except ValueError as back:
                 error_msg = response_error(back)
                 message = error_msg + '|'
-                print(message)
                 conn.sendall(message.encode('utf-8'))
             conn.close()
     except KeyboardInterrupt:
@@ -48,14 +48,14 @@ def server():
         sys.exit(0)
 
 
-def response_ok():
+def response_ok(return_search):
     """Form a string for a 200 connection."""
-    return 'HTTP/1.1 200 OK\n\r\n'
+    return 'HTTP/1.1 200 OK\n{}'.format(return_search)
 
 
 def response_error(type):
     """Form a string for a 500 response."""
-    return 'HTTP/1.1 {}\nInternal server error\n\r\n\n'.format(type)
+    return 'HTTP/1.1 {}\nInternal server error\n'.format(type)
 
 
 def parse_request(message):
@@ -97,22 +97,29 @@ def parse_request(message):
 
 def resolve_uri(uri):
     """Handle file requests."""
-    path = '/'.join([os.path.dirname(os.path.abspath(__file__)),
+    if uri.startswith('..'):
+        raise ValueError('403 Access denied.')
+    path = '/'.join([os.path.dirname(os.path.realpath(__file__)),
                      'webroot', uri]).replace('//', '/')
     if os.path.exists(path):
         if os.path.isfile(path):
-            with open(path, 'rb') as text:
+            with open(path) as text:
                 body = text.read()
             size = len(body)
             f_type = guess_type(path)
-            return body, size, f_type[0]
+            output = ('Content-Type: {}\n'
+                      'Length: {}\n\r\n'
+                      'Body:\n{}'.format(f_type, str(size), body))
+            return output
         elif os.path.isdir(path):
             dir_list = ''
+            length = 0
             for item in os.listdir(path):
                 dir_list += item + '\n'
-            return '<html><body>{}<body/><html/>'.format(dir_list)
+                length += 1
+            return 'Content-Type: directory\nNumber-of-files: {}\n\r\n<html><body>{}<body/><html/>'.format(length, dir_list)
     else:
-        raise ValueError('404 Need authorization.')
+        raise ValueError('400 File does not exist.')
 
 
 if __name__ == '__main__':  # pragma: no cover
