@@ -18,7 +18,8 @@ def test_response_ok():
 def test_response_error():
     """Test that expected byte string is created."""
     from server import response_error
-    assert response_error() == b'HTTP/1.1 500 Internal server error \n <CRLF>\n'
+    assert response_error() \
+        == b'HTTP/1.1 500 Internal server error \n <CRLF>\n'
 
 
 def test_several_buffer_lengths():
