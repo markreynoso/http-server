@@ -12,7 +12,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5682))
+    server.bind(('127.0.0.1', 5689))
     server.listen(1)
     print('connected')
     try:
@@ -61,29 +61,15 @@ def response_error(type):
 def parse_request(message):
     """Parse the incoming request from client side."""
     message_list = message.decode('utf-8').split('\r\n')
-    header_string = message_list[0].split('\n')
-    host_string = header_string[1]
-    the_header = header_string[2].split(' ')
+    header_string = message_list[0]
+    host_string = message_list[1].replace('\n', '')
+    valid_head = header_string.split(' ')
     host_line_list = host_string.split(' ')
-    valid_head = header_string[0].split(' ')
     uri = valid_head[1]
     method = valid_head[0]
-    protocol = valid_head[2]
-    correct = 0
-    verified = False
-    for i in range(len(the_header)):
-        if(i % 2 == 0):
-            if ':' in the_header[i]:
-                correct += 1
-        else:
-            if len(the_header[i]) > 0:
-                correct += 1
-    if len(the_header) == correct and len(the_header) % 2 == 0:
-        verified = True
-    if method == 'GET' and protocol == 'HTTP/1.1' and len(the_header) > 0\
-            and verified and host_line_list[0] == 'Host:':
-        # ok = response_ok()
-        # uri = ok + '\n' + uri
+    protocol = valid_head[2].replace('\n', '')
+    if method == 'GET' and protocol == 'HTTP/1.1' and\
+       host_line_list[0] == 'Host:' and len(host_line_list[1]) > 0:
         return uri
     elif method != 'GET' and protocol == 'HTTP/1.1':
         raise ValueError('405 Improper request method.')
@@ -91,7 +77,7 @@ def parse_request(message):
         raise ValueError('400 Improper protocol.')
     elif host_line_list[0] != 'Host:':
         raise ValueError('400 You must include Host:.')
-    elif verified is False or len(the_header) == 0:
+    elif len(host_line_list[1]) == 0:
         raise ValueError('406 Improper header.')
 
 
@@ -117,7 +103,9 @@ def resolve_uri(uri):
             for item in os.listdir(path):
                 dir_list += item + '\n'
                 length += 1
-            return 'Content-Type: directory\nNumber-of-files: {}\n\r\n<html><body>{}<body/><html/>'.format(length, dir_list)
+            return ('Content-Type: directory\n'
+                    'Number-of-files: {}\n\r\n'
+                    '<html><body>{}<body/><html/>'.format(length, dir_list))
     else:
         raise ValueError('400 File does not exist.')
 
