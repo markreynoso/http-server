@@ -9,7 +9,7 @@ import sys
 def client(message):
     """Create an client to send and receive message."""
     message += '|'
-    info = socket.getaddrinfo('127.0.0.1', 5637)
+    info = socket.getaddrinfo('127.0.0.1', 5691)
     stream = [i for i in info if i[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream[:3])
     client.connect((stream[-1]))
@@ -18,7 +18,6 @@ def client(message):
     message = b''
     msg_recv = True
     while msg_recv:
-        print('right here')
         msg = client.recv(8)
         message += msg
         if b'|' in msg:
