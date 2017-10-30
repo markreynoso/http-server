@@ -13,7 +13,6 @@ def server():  # pragma: no cover
         server = StreamServer(('127.0.0.1', 6001), echo)
         print('connected')
         server.serve_forever()
-
     except KeyboardInterrupt:
         print('Closing server.')
         server.close()
