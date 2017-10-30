@@ -6,6 +6,7 @@
     - Adds a byte string to return messages with the response code.
     - Receives only GET requests via HTTP/1.1. Requests must come with a valid header. Improper request will raise error.
     - Returns files or lists directory contents when requested. Raises exception if file does not exist or user attempts to traverse beyond root. 
+    - Concurrency.py will accept concurrent requests to server and send approprate response. 
 
 ## client.py
     - Establishes a connection with server.py and sends a message over and waits for it to come back.
