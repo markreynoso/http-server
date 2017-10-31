@@ -10,7 +10,7 @@ def server():
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP
     )
-    server.bind(('127.0.0.1', 5570))
+    server.bind(('127.0.0.1', 5572))
     server.listen(1)
     print('connected')
     try:
@@ -24,9 +24,9 @@ def server():
                 if b'|' in msg:
                     msg_recv = False
             message = message[:(len(message) - 1)]
-            print(message.decode('utf-8'))
-            message = message + '|'
+            message = message + b'|'
             conn.sendall(message)
+            print(message.decode('utf-8'))
             conn.close()
     except KeyboardInterrupt:
         print('Closing server.')
