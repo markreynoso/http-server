@@ -24,7 +24,6 @@ def client(message):
             msg_recv = False
     message = message.decode('utf-8')
     message = message[:(len(message) - 1)]
-    print(message)
     client.close()
     return message
 
